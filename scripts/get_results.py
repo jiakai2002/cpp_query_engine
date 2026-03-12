@@ -26,14 +26,15 @@ for sf in scale_factors:
     
     # TPC-H Q13 query
     query = """
-    SELECT c_count, COUNT(*) AS custdist
+    SELECT c_count, count(*) AS custdist
     FROM (
-        SELECT c_custkey, COUNT(o_orderkey) AS c_count
+        SELECT c_custkey, count(o_orderkey) AS c_count
         FROM customer
-        LEFT JOIN orders ON c_custkey = o_custkey
-        WHERE o_comment LIKE '%special%requests%'
+        LEFT OUTER JOIN orders
+        ON c_custkey = o_custkey
+        AND o_comment NOT LIKE '%special%requests%'
         GROUP BY c_custkey
-    ) AS order_counts
+    ) AS c_orders
     GROUP BY c_count
     ORDER BY custdist DESC, c_count DESC;
     """

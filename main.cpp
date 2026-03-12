@@ -86,6 +86,16 @@ int main(int argc, char** argv) {
         }
     }
 
+    // Print counts array for debugging
+    int max_custkey = 150000;  // adjust based on SF
+    std::ofstream out2("counts.csv");
+    out2 << "custkey,value\n";
+    for (int custkey = 1; custkey <= max_custkey; ++custkey) {
+        if (counts[custkey] != 0)
+            out2 << custkey << "," << counts[custkey] << "\n";
+    }
+    out2.close();
+
     // --- Read customer.parquet ---
     auto cust_reader = open_parquet(customer_file);
 
