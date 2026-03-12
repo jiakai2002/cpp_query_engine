@@ -1,0 +1,52 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Build artifacts
+main
+*.o
+*.obj
+*.exe
+*.out
+*.a
+*.so
+*.dylib
+
+# CMake / Make files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+build/
+*.cmake
+
+# IDE / editor files
+.vscode/
+*.code-workspace
+*.idea/
+*.iml
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Python cache / artifacts (if using Python for DuckDB scripts)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+*.venv
+env/
+venv/
+.Python
+
+# Parquet data (optional: include only if you want to ignore large data files)
+data/
+
+# DuckDB results (optional: regenerate from script)
+duckdb_results/
+
+# Engine results
+results.csv

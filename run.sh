@@ -1,0 +1,51 @@
+#!/bin/bash
+# ----------------------------
+# run.sh - Compile and run TPC-H Q13 engine
+# Usage:
+#   ./run.sh --data data/sf1 --out result.csv
+# ----------------------------
+
+# Default arguments
+DATA_DIR=""
+OUT_FILE="result.csv"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --data)
+      DATA_DIR="$2"
+      shift 2
+      ;;
+    --out)
+      OUT_FILE="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$DATA_DIR" ]]; then
+  echo "Error: --data <data_path> is required"
+  exit 1
+fi
+
+# --- Compile main.cpp ---
+echo "Compiling main.cpp..."
+g++ -O3 -std=c++20 main.cpp $(pkg-config --cflags --libs arrow parquet) -o main
+if [[ $? -ne 0 ]]; then
+  echo "Compilation failed!"
+  exit 1
+fi
+
+# --- Run program ---
+echo "Running main on $DATA_DIR..."
+./main "$DATA_DIR" "$OUT_FILE"
+if [[ $? -ne 0 ]]; then
+  echo "Execution failed!"
+  exit 1
+fi
+
+echo "Done. Output written to $OUT_FILE"
