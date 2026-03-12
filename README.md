@@ -1,3 +1,9 @@
+install tpch;
+load tpch;
+set threads=1;
+call dbgen(sf=1);
+.timer on
+
 SELECT c_count, count(*) AS custdist
 FROM (
     SELECT c_custkey, count(o_orderkey) AS c_count
