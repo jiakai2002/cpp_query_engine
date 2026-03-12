@@ -2,12 +2,15 @@
 # ----------------------------
 # run.sh - Compile and run TPC-H Q13 engine
 # Usage:
-#   ./run.sh --data data/sf1 --out result.csv
+#   ./run.sh --data data/sf1 --out result.csv [--benchmark]
 # ----------------------------
+
+set -e
 
 # Default arguments
 DATA_DIR=""
 OUT_FILE="result.csv"
+BENCHMARK=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -19,6 +22,10 @@ while [[ $# -gt 0 ]]; do
     --out)
       OUT_FILE="$2"
       shift 2
+      ;;
+    --benchmark)
+      BENCHMARK="--benchmark"
+      shift
       ;;
     *)
       echo "Unknown option: $1"
@@ -34,7 +41,7 @@ fi
 
 # --- Compile main.cpp ---
 echo "Compiling main.cpp..."
-g++ -O3 -std=c++20 main.cpp $(pkg-config --cflags --libs arrow parquet) -o main
+g++ -O3 -march=native -std=c++20 main.cpp $(pkg-config --cflags --libs arrow parquet) -o main
 if [[ $? -ne 0 ]]; then
   echo "Compilation failed!"
   exit 1
@@ -42,10 +49,8 @@ fi
 
 # --- Run program ---
 echo "Running main on $DATA_DIR..."
-./main "$DATA_DIR" "$OUT_FILE"
+./main "$DATA_DIR" "$OUT_FILE" $BENCHMARK
 if [[ $? -ne 0 ]]; then
   echo "Execution failed!"
   exit 1
 fi
-
-echo "Done. Output written to $OUT_FILE"
