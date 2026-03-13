@@ -42,7 +42,11 @@ unique_ptr<parquet::arrow::FileReader> open_parquet(const string& path) {
     // Create single-threaded Arrow pool
     auto pool = arrow::default_memory_pool();
     std::shared_ptr<arrow::internal::ThreadPool> single_thread_pool;
-    arrow::internal::ThreadPool::Make(1).Value(&single_thread_pool);
+    auto tp_result = arrow::internal::ThreadPool::Make(1);
+    if (!tp_result.ok()) {
+        throw std::runtime_error("Failed to create single-thread thread pool: " + tp_result.status().ToString());
+    }
+    single_thread_pool = *tp_result; // now safe to assign
 
     // Create Parquet reader with single-thread pool
     parquet::ArrowReaderProperties props;
