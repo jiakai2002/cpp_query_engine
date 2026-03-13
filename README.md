@@ -72,7 +72,3 @@ This finds all `results/result_sf*.csv` files and checks each against its corres
 [results/result_sf1.csv] Output matches DuckDB ✅
 [results/result_sf5.csv] Mismatch at c_count=3: my=4150 duck=4200 ❌
 ```
-<img width="631" height="1115" alt="Screenshot 2026-03-14 at 1 30 00 AM" src="https://github.com/user-attachments/assets/91199552-aeca-4966-85f8-4b9f31b6b4ee" />
-<img width="1103" height="261" alt="Screenshot 2026-03-14 at 1 29 24 AM" src="https://github.com/user-attachments/assets/ab5bde9b-196c-47a0-8019-e28b1d750467" />
-
-
