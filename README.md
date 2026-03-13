@@ -6,11 +6,11 @@ A fast single-query processor for TPC-H Query 13, benchmarked against DuckDB.
 
 Average query time (ms), single-threaded:
 
-| Engine        | SF 0.5 | SF 1   | SF 2   | SF 5    |
-|---------------|--------|--------|--------|---------|
-| Custom Engine | 68.14  | 135.99 | 273.72 | 687.56  |
-| DuckDB        | 121.76 | 258.63 | 554.40 | 1470.22 |
-| Speedup       | 1.79×  | 1.90×  | 2.03×  | 2.14×   |
+| Engine  | SF 0.5 | SF 1   | SF 2   | SF 5    |
+|---------|--------|--------|--------|---------|
+| Custom  | 68.14  | 135.99 | 273.72 | 687.56  |
+| DuckDB  | 121.76 | 258.63 | 554.40 | 1470.22 |
+| Speedup | 1.79×  | 1.90×  | 2.03×  | 2.14×   |
 
 ## Optimizations
 
