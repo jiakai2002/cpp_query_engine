@@ -1,5 +1,7 @@
 # TPC-H Q13 Benchmark
 
+A fast single-query processor for TPC-H Query 13, benchmarked against DuckDB.
+
 ## Results
 
 Average query time (ms), single-threaded:
@@ -10,7 +12,11 @@ Average query time (ms), single-threaded:
 | DuckDB        | 121.76 | 258.63 | 554.40 | 1470.22 |
 | Speedup       | 1.79×  | 1.90×  | 2.03×  | 2.14×   |
 
-A fast single-threaded C++ implementation of TPC-H Query 13 (customer order distribution), benchmarked against DuckDB.
+## Optimizations
+
+- Cache-friendly array sizing — int8_t counts[] instead of int, shrinking the scatter array from 3MB → 750KB to reduce cache misses on random custkey writes
+
+- Early-exit string filter — reject_comment checks length < 16 upfront, then scans for 's' guard char before memcmp("special", 7), avoiding full string scans on the vast majority of rows
 
 ## Query
 
