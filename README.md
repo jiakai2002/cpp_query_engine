@@ -14,9 +14,15 @@ Average query time (ms), single-threaded:
 
 ## Optimizations
 
-- Cache-friendly array sizing — int8_t counts[] instead of int, shrinking the scatter array from 3MB → 750KB to reduce cache misses on random custkey writes
+- Early-exit string filter — reject_comment checks length < 16 upfront, then scans for 's' guard char before memcmp("special", 7), reducing full string scans
 
-- Early-exit string filter — reject_comment checks length < 16 upfront, then scans for 's' guard char before memcmp("special", 7), avoiding full string scans on the vast majority of rows
+- Flat Array aggregation — uses counts[] instead of a hash map for O(1) indexing.
+
+- Cache-aligned arrays — alignas(64) avoids false sharing and aligns to cache lines.
+
+- Smaller arrays — int8_t counts[] reduces cache misses by shrinking the scatter array.
+
+- Branchless counting — counts[custkey] += !reject_comment(view) avoids branch mispredictions.
 
 ## Query
 

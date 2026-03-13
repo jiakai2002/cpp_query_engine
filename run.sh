@@ -9,7 +9,7 @@ set -e
 
 # Default arguments
 DATA_DIR=""
-OUT_FILE="result.csv"
+OUT_FILE=""
 BENCHMARK=""
 
 # Parse arguments
