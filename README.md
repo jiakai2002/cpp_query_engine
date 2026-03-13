@@ -15,18 +15,12 @@ Average query time (ms), single-threaded:
 ## Optimizations
 
 - Early-exit string filter — reject_comment checks length < 16 upfront, then scans for 's' guard char before memcmp("special", 7), reducing full string scans
-
-- Flat Array aggregation — uses counts[] instead of a hash map for O(1) indexing.
-
-- Cache-aligned arrays — alignas(64) avoids false sharing and aligns to cache lines.
-
-- Smaller arrays — int8_t counts[] reduces cache misses by shrinking the scatter array.
-
-- Branchless counting — counts[custkey] += !reject_comment(view) avoids branch mispredictions.
+- Flat array aggregation — uses counts[] instead of a hash map for O(1) indexing
+- Cache-aligned arrays — alignas(64) avoids false sharing and aligns to cache lines
+- Smaller arrays — int8_t counts[] reduces cache misses by shrinking the scatter array
+- Branchless counting — counts[custkey] += !reject_comment(view) avoids branch mispredictions
 
 ## Query
-
-Computes the distribution of customers by their number of non-special orders:
 
 ```sql
 SELECT c_count, COUNT(*) AS custdist
@@ -42,7 +36,7 @@ FROM (
 
 - C++20, `g++`
 - Apache Arrow + Parquet (`pkg-config` accessible)
-- Python 3 + `duckdb` (for Python benchmark)
+- Python 3 (for validation)
 
 ## Data
 
@@ -52,31 +46,40 @@ data/
   sf1/
     customer.parquet
     orders.parquet
-  sf5/
-    ...
 ```
 
 ## Usage
 
-**C++ engine:**
 ```bash
-./run.sh --data data/sf1 --out result.csv
-./run.sh --data data/sf1 --out result.csv --benchmark   # 1 warmup + 5 measured runs
+# Run query — prints result table, writes results/result_sf1.csv
+./run.sh --data data/sf1
+
+# Benchmark mode — 1 warmup + 5 measured runs, prints per-run and average timings
+./run.sh --data data/sf1 --benchmark
 ```
 
-**DuckDB benchmark:**
+The output CSV is named after the data folder (e.g. `data/sf1` → `results/result_sf1.csv`).
+
+## Validation
+
+Place DuckDB reference CSVs in `validation/` (e.g. `validation/duckdb_sf1.csv`), then run:
+
 ```bash
-python duckdb.py   # runs SF 0.5, 1, 2, 5
+python test.py
 ```
 
-## Output
+This auto-discovers all `results/result_sf*.csv` files and checks each against its corresponding `validation/duckdb_sf*.csv`, reporting any mismatches:
 
-Results are written to a CSV file:
+```
+[results/result_sf1.csv] Output matches DuckDB ✅
+[results/result_sf5.csv] Mismatch at c_count=3: my=4150 duck=4200 ❌
+```
+
+## Output Format
+
 ```
 c_count,custdist
 0,5000
 1,4200
 ...
 ```
-
-Benchmark mode also prints per-run timings broken down into read, loop, and customer scan phases.

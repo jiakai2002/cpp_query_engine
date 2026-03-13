@@ -1,6 +1,8 @@
 import csv
-import sys
 import os
+
+RESULTS_DIR = "results"
+VALIDATION_DIR = "validation"
 
 def read_csv(path):
     data = {}
@@ -12,36 +14,46 @@ def read_csv(path):
             data[key] = val
     return data
 
-def check_correctness(myfile, sf):
+def check_correctness(myfile, duckfile):
+    if not os.path.exists(duckfile):
+        print(f"Validation file not found: {duckfile}")
+        return False
+
     mydata = read_csv(myfile)
-    duckdata = read_csv(sf)
+    duckdata = read_csv(duckfile)
 
     ok = True
     for k, v in mydata.items():
         if k not in duckdata:
-            print(f"Extra row in my output: c_count={k}")
+            print(f"[{myfile}] Extra row: c_count={k}")
             ok = False
         elif duckdata[k] != v:
-            print(f"Mismatch at c_count={k}: my={v} duck={duckdata[k]}")
+            print(f"[{myfile}] Mismatch at c_count={k}: my={v} duck={duckdata[k]}")
             ok = False
     for k in duckdata:
         if k not in mydata:
-            print(f"Missing row in my output: c_count={k}")
+            print(f"[{myfile}] Missing row: c_count={k}")
             ok = False
 
     if ok:
-        print("Output matches DuckDB ✅")
+        print(f"[{myfile}] Output matches DuckDB ✅")
     else:
-        print("Output does NOT match DuckDB ❌")
+        print(f"[{myfile}] Output does NOT match DuckDB ❌")
     return ok
 
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage:")
-        print("python test.py results/result_sf0.5.csv validation/duckdb_sf0.5.csv")
-        print("python test.py results/result_sf1.csv validation/duckdb_sf1.csv")
-        sys.exit(1)
+def main():
+    # Find all result CSV files
+    result_files = [f for f in os.listdir(RESULTS_DIR) if f.startswith("result_sf") and f.endswith(".csv")]
+    if not result_files:
+        print("No result CSV files found in results/")
+        return
 
-    myfile = sys.argv[1]
-    sf = sys.argv[2]  # e.g., "0.5", "1", "2", "5"
-    check_correctness(myfile, sf)
+    for rf in sorted(result_files):
+        # extract SF from filename, e.g., result_sf1.csv -> 1
+        sf = rf.replace("result_sf", "").replace(".csv", "")
+        myfile = os.path.join(RESULTS_DIR, rf)
+        duckfile = os.path.join(VALIDATION_DIR, f"duckdb_sf{sf}.csv")
+        check_correctness(myfile, duckfile)
+
+if __name__ == "__main__":
+    main()

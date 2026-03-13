@@ -120,8 +120,6 @@ int main(int argc, char** argv) {
 
             auto read_start = chrono::high_resolution_clock::now();
 
-            // read row group and store in table
-            // Read = disk i/o, decompress, decode
             shared_ptr<arrow::Table> table;
             PARQUET_THROW_NOT_OK(reader->ReadRowGroup(rg, cols, &table));
 
@@ -188,15 +186,38 @@ int main(int argc, char** argv) {
             cust_times.push_back(cust_ms);
         }
 
-        if (!benchmark_mode) break;
-        cout << "[" << (run - WARMUP_RUNS + 1) << "] time: " << elapsed_ms
-             << " ms - orders: " << (read_ms + loop_ms)
-             << " ms (read: " << read_ms
-             << " ms, loop: " << loop_ms
-             << " ms), customer: " << cust_ms << " ms" << endl;
+        if (!benchmark_mode) {
+            // --- NORMAL MODE: print small table ---
+            cout << "\nc_count | custdist\n";
+            cout << "-------------------\n";
+            for (int i = 0; i < MAX_ORDER_COUNT; ++i) {
+                if (custdist[i] > 0) {
+                    cout << " " << setw(6) << i << " | " << setw(8) << custdist[i] << "\n";
+                }
+            }
+            cout << "\nTotal time: " << elapsed_ms << " ms\n" << endl;
+
+            // Write CSV for normal mode
+            ofstream out(output_file);
+            out << "c_count,custdist\n";
+            for (int i = 0; i < MAX_ORDER_COUNT; ++i)
+                if (custdist[i] > 0) out << i << "," << custdist[i] << "\n";
+            out.close();
+
+            cout << "Query finished. Result written to " << output_file << endl;
+            break; // only run once in normal mode
+        }
+
+        // --- BENCHMARK MODE ---
+        if (benchmark_mode) {
+            cout << "[" << (run - WARMUP_RUNS + 1) << "] time: " << elapsed_ms
+                 << " ms - orders: " << (read_ms + loop_ms)
+                 << " ms (read: " << read_ms
+                 << " ms, loop: " << loop_ms
+                 << " ms), customer: " << cust_ms << " ms" << endl;
+        }
     }
 
-    // -----------------------------
     // Average benchmark timings
     if (benchmark_mode) {
         double avg_total = accumulate(run_times.begin(), run_times.end(), 0.0) / run_times.size();
@@ -210,25 +231,6 @@ int main(int argc, char** argv) {
              << " ms, loop: " << avg_loop
              << " ms)\ncustomer: " << avg_cust << " ms\n" << endl;
     }
-
-    // -----------------------------
-    // Emit result CSV
-    vector<pair<int,int>> result;
-    for (int i = 0; i < MAX_ORDER_COUNT; ++i)
-        if (custdist[i] > 0) result.emplace_back(i, custdist[i]);
-
-    sort(result.begin(), result.end(),
-         [](const auto &a, const auto &b) {
-             if (a.second != b.second) return a.second > b.second;
-             return a.first > b.first;
-         });
-
-    ofstream out(output_file);
-    out << "c_count,custdist\n";
-    for (auto &r : result) out << r.first << "," << r.second << "\n";
-    out.close();
-
-    cout << "Query finished. Result written to " << output_file << endl;
 
     return 0;
 }
