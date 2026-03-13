@@ -18,21 +18,31 @@
 
 using namespace std;
 
-// can tolerate till SF=5
+// can hold up to SF=5
 static const int MAX_CUSTOMERS = 750001;
 static const int MAX_ORDER_COUNT = 100;
 
-alignas(64) int counts[MAX_CUSTOMERS];
+alignas(64) int8_t counts[MAX_CUSTOMERS]; // max orders per customer is <= 50
 alignas(64) int custdist[MAX_ORDER_COUNT];
 
-// Predicate to reject comments: '%special%requests%'
 inline bool reject_comment(string_view s) {
-    size_t pos = s.find("special");
-    if (pos == string_view::npos) return false;
-    return s.find("requests", pos + 7) != string_view::npos;
+    if (s.size() < 16) return false;
+    const char* p = s.data();
+    const char* end = p + s.size() - 6;
+    while (p < end) {
+        if (*p == 's' && memcmp(p, "special", 7) == 0) {
+            const char* q = p + 7;
+            const char* qend = s.data() + s.size() - 7;
+            while (q < qend) {
+                if (*q == 'r' && memcmp(q, "requests", 8) == 0) return true;
+                q++;
+            }
+        }
+        p++;
+    }
+    return false;
 }
 
-// Open Parquet file using Arrow FileReader
 unique_ptr<parquet::arrow::FileReader> open_parquet(const string& path) {
     auto infile_result = arrow::io::ReadableFile::Open(path);
     if (!infile_result.ok())
@@ -46,7 +56,7 @@ unique_ptr<parquet::arrow::FileReader> open_parquet(const string& path) {
     if (!tp_result.ok()) {
         throw std::runtime_error("Failed to create single-thread thread pool: " + tp_result.status().ToString());
     }
-    single_thread_pool = *tp_result; // now safe to assign
+    single_thread_pool = *tp_result;
 
     // Create Parquet reader with single-thread pool
     parquet::ArrowReaderProperties props;
