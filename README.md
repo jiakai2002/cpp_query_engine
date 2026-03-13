@@ -62,24 +62,13 @@ The output CSV is named after the data folder (e.g. `data/sf1` → `results/resu
 
 ## Validation
 
-Place DuckDB reference CSVs in `validation/` (e.g. `validation/duckdb_sf1.csv`), then run:
-
 ```bash
 python test.py
 ```
 
-This auto-discovers all `results/result_sf*.csv` files and checks each against its corresponding `validation/duckdb_sf*.csv`, reporting any mismatches:
+This finds all `results/result_sf*.csv` files and checks each against its corresponding `validation/duckdb_sf*.csv`, reporting any mismatches:
 
 ```
 [results/result_sf1.csv] Output matches DuckDB ✅
 [results/result_sf5.csv] Mismatch at c_count=3: my=4150 duck=4200 ❌
-```
-
-## Output Format
-
-```
-c_count,custdist
-0,5000
-1,4200
-...
 ```

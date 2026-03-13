@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
                     cout << " " << setw(6) << i << " | " << setw(8) << custdist[i] << "\n";
                 }
             }
-            cout << "\nTotal time: " << elapsed_ms << " ms\n" << endl;
+            cout << "\nTime taken: " << elapsed_ms << " ms\n" << endl;
 
             // Write CSV for normal mode
             ofstream out(output_file);
@@ -204,7 +204,7 @@ int main(int argc, char** argv) {
                 if (custdist[i] > 0) out << i << "," << custdist[i] << "\n";
             out.close();
 
-            cout << "Query finished. Result written to " << output_file << endl;
+            cout << "Output written to " << output_file << endl;
             break; // only run once in normal mode
         }
 
