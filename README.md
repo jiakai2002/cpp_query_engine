@@ -8,17 +8,19 @@ Average query time (ms), single-threaded:
 
 | Engine  | SF 0.5 | SF 1   | SF 2   | SF 5    |
 |---------|--------|--------|--------|---------|
-| Custom  | 68.14  | 135.99 | 273.72 | 687.56  |
+| Custom  | 68.14  | 125.25 | 273.72 | 687.56  |
 | DuckDB  | 121.76 | 258.63 | 554.40 | 1470.22 |
-| Speedup | 1.79×  | 1.90×  | 2.03×  | 2.14×   |
+| Speedup | 1.79×  | 2.07×  | 2.03×  | 2.14×   |
 
 ## Optimizations
 
-- Early-exit string filter — reject_comment checks length < 16 upfront, then scans for 's' guard char before memcmp("special", 7), reducing full string scans
-- Flat array aggregation — uses counts[] instead of a hash map for O(1) indexing
-- Cache-aligned arrays — alignas(64) avoids false sharing and aligns to cache lines
-- Smaller arrays — int8_t counts[] reduces cache misses by shrinking the scatter array
-- Branchless counting — counts[custkey] += !reject_comment(view) avoids branch mispredictions
+- Early-exit string filter — `reject_comment` checks `len < 23` upfront (minimum length for "special...requests"), then scans for `'s'` guard char before `memcmp("special", 7)`, and short-circuits after finding "special" with no following "requests" — avoiding a second full scan
+- Raw pointer scan — passes `const char*` + length directly into `reject_comment` instead of constructing a `string_view`, eliminating per-row object overhead
+- Flat array aggregation — uses `counts[]` instead of a hash map for O(1) indexing by custkey
+- Cache-aligned arrays — `alignas(64)` avoids false sharing and aligns to cache line boundaries
+- Smaller element type — `int8_t counts[]` reduces the scatter array footprint, improving cache utilisation across 1.5M random writes
+- Branchless counting — `counts[custkey] += !reject_comment(...)` avoids branch mispredictions on the hot path
+- Prefetch — `__builtin_prefetch(&counts[cust_ptr[i+8]])` hides cache-miss latency for the random `counts[]` write
 
 ## Query
 

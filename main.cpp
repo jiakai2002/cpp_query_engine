@@ -25,17 +25,21 @@ static const int MAX_ORDER_COUNT = 100;
 alignas(64) int8_t counts[MAX_CUSTOMERS]; // max orders per customer is <= 50
 alignas(64) int custdist[MAX_ORDER_COUNT];
 
-inline bool reject_comment(string_view s) {
-    if (s.size() < 16) return false;
-    const char* p = s.data();
-    const char* end = p + s.size() - 6;
+inline bool reject_comment(const char* p, int len) {
+    if (len < 23) return false;
+    const char* end = p + len - 14; // enough room for "special requests"
     while (p < end) {
-        if (*p == 's' && memcmp(p, "special", 7) == 0) {
-            const char* q = p + 7;
-            const char* qend = s.data() + s.size() - 7;
-            while (q < qend) {
-                if (*q == 'r' && memcmp(q, "requests", 8) == 0) return true;
-                q++;
+        if (*p == 's') {
+            if (memcmp(p, "special", 7) == 0) {
+                const char* q = p + 8; // at least one space between
+                const char* qend = p + len - 7; // (p-relative, not original)
+                // recompute qend relative to original base
+                // actually: q scans from p+8 to (base+len-8)
+                while (q <= p + len - 8) {
+                    if (*q == 'r' && memcmp(q, "requests", 8) == 0) return true;
+                    q++;
+                }
+                return false; // "special" found but no "requests" after it
             }
         }
         p++;
@@ -141,8 +145,8 @@ int main(int argc, char** argv) {
                 int custkey = (int)cust_ptr[i];
                 int start = offsets[i];
                 int len = offsets[i + 1] - start;
-                string_view view(data + start, len);
-                counts[custkey] += !reject_comment(view);
+                bool rejected = reject_comment(data + start, len); //reject 20k/1.5m(1.4%) for sf=1
+                counts[custkey] += !rejected;
             }
 
             auto loop_end = chrono::high_resolution_clock::now();
