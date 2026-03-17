@@ -141,7 +141,6 @@ int main(int argc, char** argv) {
             auto loop_start = chrono::high_resolution_clock::now();
 
             for (int i = 0; i < rows; ++i) {
-                if (i + 8 < rows) __builtin_prefetch(&counts[cust_ptr[i + 8]]);
                 int custkey = (int)cust_ptr[i];
                 int start = offsets[i];
                 int len = offsets[i + 1] - start;
