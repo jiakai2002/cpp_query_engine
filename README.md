@@ -12,19 +12,30 @@ A fast single-query processor for TPC-H Query 13, benchmarked against DuckDB.
 
 ## Results
 
-Average query time (ms), single-threaded:
+Average query time (ms), single-threaded (1 warmup + 5 measured runs):
 
 | Engine  | SF 0.5 | SF 1   | SF 2   | SF 5   |
 |---------|--------|--------|--------|--------|
-| Custom  | 62.59  | 125.51 | 251.06 | 631.10 |
+| Custom  | 68.26  | 135.63 | 273.39 | 693.52 |
 | DuckDB  | 121.76 | 258.63 | 554.40 | 1470.22 |
-| Speedup | 1.94×  | 2.06×  | 2.21×  | 2.33×  |
+| Speedup | 1.78×  | 1.91×  | 2.03×  | 2.12×  |
+
+### Time breakdown (SF 1, average across 5 runs)
+
+| Phase         | Time (ms) |
+|---------------|-----------|
+| Orders read   | 68.44     |
+| Orders loop   | 65.76     |
+| Customer scan | 1.22      |
+| **Total**     | **135.63** |
+
+Read and loop time are nearly equal at every scale factor (~51% / 49% split), indicating the workload is evenly balanced between Parquet I/O and computation — a strong candidate for read/compute pipelining.
 
 ## Optimizations
 
-- Early-exit string filter — `reject_comment` checks `len < 23` upfront then scans for `'s'` before `memcmp("special", 7)`, — avoiding full string scan for 98.6% of rows that don't match
+- Early-exit string filter — `reject_comment` scans for `'s'` before `memcmp("special", 7)`, then searches for `"requests"` only after a confirmed `"special"` match; early-exits on `len < 16`
 - Flat array aggregation — uses `counts[]` instead of a hash map for O(1) indexing by custkey
-- Smaller element type — int8_t counts[750001] (~730 KB) keeps the entire scatter array within L2 cache so all 1.5M random writes hit cache
+- Smaller element type — `int8_t counts[750001]` (~730 KB) keeps the entire scatter array within L2 cache so all random writes hit cache
 - Cache-aligned arrays — `alignas(64)` avoids false sharing and aligns to cache line boundaries
 - Branchless counting — `counts[custkey] += !reject_comment(...)` avoids branch mispredictions on the hot path
 

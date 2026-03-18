@@ -26,23 +26,20 @@ alignas(64) int8_t counts[MAX_CUSTOMERS]; // max orders per customer is <= 50
 alignas(64) int custdist[MAX_ORDER_COUNT];
 
 inline bool reject_comment(const char* p, int len) {
-    if (len < 23) return false;
-    const char* end = p + len - 14; // enough room for "special requests"
-    while (p < end) {
-        if (*p == 's') {
-            if (memcmp(p, "special", 7) == 0) {
-                const char* q = p + 8; // at least one space between
-                const char* qend = p + len - 7; // (p-relative, not original)
-                // recompute qend relative to original base
-                // actually: q scans from p+8 to (base+len-8)
-                while (q <= p + len - 8) {
-                    if (*q == 'r' && memcmp(q, "requests", 8) == 0) return true;
-                    q++;
+    if (len < 16) return false; // minimum "special%requests"
+
+    const char* end = p + len;
+
+    for (const char* s = p; s <= end - 7; s++) {
+        if (*s == 's' && memcmp(s, "special", 7) == 0) {
+
+            // search for "requests" AFTER this "special"
+            for (const char* r = s + 7; r <= end - 8; r++) {
+                if (*r == 'r' && memcmp(r, "requests", 8) == 0) {
+                    return true;
                 }
-                return false; // "special" found but no "requests" after it
             }
         }
-        p++;
     }
     return false;
 }
