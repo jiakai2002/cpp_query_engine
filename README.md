@@ -17,8 +17,8 @@ Average query time (ms), single-threaded (1 warmup + 5 measured runs):
 | Engine  | SF 0.5 | SF 1   | SF 2   | SF 5   |
 |---------|--------|--------|--------|--------|
 | Custom  | 68.26  | 135.63 | 273.39 | 693.52 |
-| DuckDB  | 121.76 | 258.63 | 554.40 | 1470.22 |
-| Speedup | 1.78×  | 1.91×  | 2.03×  | 2.12×  |
+| DuckDB  | 173.00 | 321.00 | 640.00 | 1623.00 |
+| Speedup | 2.53×  | 2.37×  | 2.34×  | 2.34×  |
 
 ### Time breakdown (SF 1, average across 5 runs)
 
