@@ -187,21 +187,28 @@ int main(int argc, char** argv) {
         }
 
         if (!benchmark_mode) {
-            // --- NORMAL MODE: print small table ---
+            // --- NORMAL MODE: print sorted table ---
+            vector<pair<int,int>> dist; // (c_count, custdist)
+            for (int i = 0; i < MAX_ORDER_COUNT; ++i)
+                if (custdist[i] > 0) dist.emplace_back(i, custdist[i]);
+
+            // Sort by custdist descending, then c_count descending
+            sort(dist.begin(), dist.end(), [](const auto &a, const auto &b) {
+                if (a.second != b.second) return a.second > b.second;
+                return a.first > b.first;
+            });
+
             cout << "\nc_count | custdist\n";
             cout << "-------------------\n";
-            for (int i = 0; i < MAX_ORDER_COUNT; ++i) {
-                if (custdist[i] > 0) {
-                    cout << " " << setw(6) << i << " | " << setw(8) << custdist[i] << "\n";
-                }
+            for (auto &p : dist) {
+                cout << " " << setw(6) << p.first << " | " << setw(8) << p.second << "\n";
             }
             cout << "\nTime taken: " << elapsed_ms << " ms\n" << endl;
 
             // Write CSV for normal mode
             ofstream out(output_file);
             out << "c_count,custdist\n";
-            for (int i = 0; i < MAX_ORDER_COUNT; ++i)
-                if (custdist[i] > 0) out << i << "," << custdist[i] << "\n";
+            for (auto &p : dist) out << p.first << "," << p.second << "\n";
             out.close();
 
             cout << "Output written to " << output_file << endl;
