@@ -9,8 +9,8 @@ query_template = """
 SELECT c_count, COUNT(*) AS custdist
 FROM (
     SELECT c.c_custkey, COUNT(o.o_orderkey) AS c_count
-    FROM read_parquet('data/sf5/customer.parquet') AS c
-    LEFT OUTER JOIN read_parquet('data/sf5/orders.parquet') AS o
+    FROM read_parquet('data/sf1/customer.parquet') AS c
+    LEFT OUTER JOIN read_parquet('data/sf1/orders.parquet') AS o
     ON c.c_custkey = o.o_custkey
     AND o.o_comment NOT LIKE '%special%requests%'
     GROUP BY c.c_custkey
