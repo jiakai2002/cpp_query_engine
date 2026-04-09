@@ -31,16 +31,47 @@ inline bool reject_comment(const char* p, int len) {
     const char* end = p + len;
 
     for (const char* s = p; s <= end - 7; s++) {
-        if (*s == 's' && memcmp(s, "special", 7) == 0) {
+        if (memcmp(s, "special", 7) == 0) {
 
             // search for "requests" AFTER this "special"
             for (const char* r = s + 7; r <= end - 8; r++) {
-                if (*r == 'r' && memcmp(r, "requests", 8) == 0) {
+                if (memcmp(r, "requests", 8) == 0) {
                     return true;
                 }
             }
         }
     }
+    return false;
+}
+
+bool reject_comment_naive(const char* p, int len) {
+    const char special[] = "special";
+    const char requests[] = "requests";
+
+    for (int i = 0; i < len; i++) {                 // try every start for "special"
+        bool ok1 = true;
+        for (int j = 0; j < 7; j++) {               // compare char-by-char
+            if (i + j >= len || p[i + j] != special[j]) {
+                ok1 = false;
+                break;
+            }
+        }
+
+        if (!ok1) continue;
+
+        for (int k = i + 7; k < len; k++) {         // try every later start for "requests"
+            bool ok2 = true;
+            for (int t = 0; t < 8; t++) {           // compare char-by-char again
+                if (k + t >= len || p[k + t] != requests[t]) {
+                    ok2 = false;
+                    break;
+                }
+            }
+
+            if (ok2) return true;
+        }
+    }
+
     return false;
 }
 
