@@ -23,7 +23,7 @@ static const int MAX_CUSTOMERS = 750001;
 static const int MAX_ORDER_COUNT = 100;
 
 alignas(64) int8_t counts[MAX_CUSTOMERS]; // max orders per customer is <= 50
-alignas(64) int custdist[MAX_ORDER_COUNT];
+alignas(64) int custdist[MAX_ORDER_COhNT];
 
 inline bool reject_comment(const char* p, int len) {
     if (len < 16) return false; // minimum "special%requests"
